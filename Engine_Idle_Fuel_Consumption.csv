@@ -1,0 +1,13 @@
+﻿VEHICLE TYPE,FUEL TYPE,ENGINE SIZE,GROSS VEHICLE WEIGHT,IDLING FUEL USE
+,,(LITER),(GVW) (LBS),(GAL/HR WITH NO LOAD)
+Compact Sedan,Gas,2,-,0.16
+Large Sedan,Gas,4.6,-,0.39
+Compact Sedan,Diesel,2,-,0.17
+Medium Heavy Truck,Gas,7-May,"19,700-26,000",0.84
+Delivery Truck,Diesel,-,"19,500",0.84
+Tow Truck,Diesel,-,"26,000",0.59
+Medium Heavy Truck,Diesel,10-Jun,"23,000-33,000",0.44
+Transit Bus,Diesel,-,"30,000",0.97
+Combination Truck,Diesel,-,"32,000",0.49
+Bucket Truck,Diesel,-,"37,000",0.9
+Tractor-Semitrailer,Diesel,-,"80,000",0.64
