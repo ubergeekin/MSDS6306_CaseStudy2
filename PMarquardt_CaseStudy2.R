@@ -37,9 +37,7 @@ dis7.income <- mean(dis7.income)
 gas <- read.csv("Weekly_California_All_Grades_All_Formulations_Retail_Gasoline_Prices.csv")
 names(gas) <- c('Week of','Price')
 gas$Price <- as.numeric(paste(gas$Price))
-gas
-summary(gas$Price)
-mean(gas$Price, na.rm = TRUE)
+gascost <- mean(gas$Price, na.rm = TRUE)
 
 # ************************** BEGIN EQUATIONS  **************************#
 # Equation Conversions with Consolidated_traffic_data.csv #
@@ -66,26 +64,32 @@ idle <- mean(idle)
 idle
 
 # Calculate average fuel economy average of acceleration and idle
-esfc <- mean(acceleration, idle)
-esfc
+eifc <- mean(acceleration, idle)
+eifc
 
 # Estimation of fuel consumption: Average MPG = (Avg Fuel Economy of Acceleration and Idle) + 0.25 (Compensation for Drag Coefficient) * Average Speed
-AvgMPG <- (esfc+.025*avgspd)
+AvgMPG <- (eifc+.025*avgspd)
 names(AvgMPG) <- c("35-MPH", "40-MPH", "45-MPH", "50-MPH", "55-MPH", "60-MPH")
 AvgMPG <- mean(AvgMPG)
 AvgMPG
 
 
-# Travel Time Cost Equation: Travel Time in peak congestion period = Daily VHT in peak congestion/Daily VMT in peak congestion
-# Define VMT
+# (Mobility Cost) Travel Time Cost Equation: Travel Time in peak congestion period = Daily VHT in peak congestion/Daily VMT in peak congestion
+# Define Vehicle Miles Traveled (VMT)
 vmt <- na.omit(as.numeric(paste(consolidated$annual_vmt)))
 vmt <- mean(vmt)
 vmt
 
-# Define VHT
+# Define Vehicle Hours Traveld (VHT)
 vht.raw <- na.omit(consolidated$avg_back_peak_hour, + consolidated$avg_back_peak_hour, + consolidated$avg_back_peak_month, + consolidated$avg_back_peak_hour)
 vht <- mean(vht.raw)
 vht
+
+# Calculate Value of Travel (VOT) for personal, business, truck
+iwage <- (dis7.income/1980)/2
+bwage <- dis7.income/1980
+twage <- 45
+vot <- mean(iwage, bwage, twage)
 
 # Calculate Travel Time in Peak Congestion Period
 ttpc <- vht / vmt
@@ -93,13 +97,23 @@ ttpc <- format(ttpc, scientific = FALSE)
 print(paste("Travel Time in Peak Congestion Period:", ttpc))
 
 # Calculate Unreliability Var = S0 + S1 - S0 / 1 + exp(b(v/c -a))
-var <- 
+varco <- read.csv("variability_coefficient.csv")
+s0 <- mean(varco$S0_Freeway, varco$S0_Arterial)
+s1 <- mean(varco$S1_Freeway, varco$S1_Aterial)
+b <- mean(varco$B_Freeway, varco$B_Arterial)
+a <- mean(varco$A_Freeway, varco$A_Arterial)
+c <- mean(varco$VC_Freeway, varco$VC_Arterial)
+v <- mean(consolidated$total_flow)
+var <- (s0+s1)/(1+(exp(b*(v/c-a))))
 
 # Calculate Reduced Mobility: C = Time Cost + Vehicle Operating Cost + Reliability Cost
 mobility <= tc + voc + rc
 
+# Calculate average cost of driving (AC)
+ac <- gascost+delays+var
+ac
 
-# Calculate Marginal Cost of Driving (TC = AC * Q)
-tc <- ac * vmt
-
+# Calculate total cost of driving (TC)
+tc <- ac*vmt
+tc
 # ************************** END EQUATIONS  **************************#      
