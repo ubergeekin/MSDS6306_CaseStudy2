@@ -108,9 +108,6 @@ c <- mean(varco$VC_Freeway, varco$VC_Arterial)
 v <- mean(consolidated$total_flow)
 var <- (s0+s1)/(1+(exp(b*(v/c-a))))
 
-# Calculate Reduced Mobility: C = Time Cost + Vehicle Operating Cost + Reliability Cost
-mobility <- tc + voc + rc
-
 # Calculate average cost of driving (AC)
 ac <- gascost+delays+var
 ac
