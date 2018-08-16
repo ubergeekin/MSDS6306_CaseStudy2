@@ -1,0 +1,204 @@
+/* Generated Code (IMPORT) */
+/* Source File: consolidateddata_train.xlsx */
+/* Source Path: /folders/myfolders */
+/* Code generated on: 8/12/18, 8:29 AM */
+
+%web_drop_table(WORK.IMPORT);
+
+
+FILENAME REFFILE '/folders/myfolders/consolidateddata_train.xlsx';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=XLSX
+	OUT=WORK.IMPORT;
+	GETNAMES=YES;
+RUN;
+
+PROC CONTENTS DATA=WORK.IMPORT; RUN;
+
+
+%web_open_table(WORK.IMPORT);
+/*fwd model all variables - each ind delay is sig*/
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow avg_delay_35 avg_delay_40 avg_delay_45 avg_delay_50 avg_delay_55 avg_delay_60 time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = forward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*bwd model all variables - lots of inf sbc and aic, many more parameters in model */
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow avg_delay_35 avg_delay_40 avg_delay_45 avg_delay_50 avg_delay_55 avg_delay_60 time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = backward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*stepwise model all variables - each ind delays are in model - f value to inf*/
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow avg_delay_35 avg_delay_40 avg_delay_45 avg_delay_50 avg_delay_55 avg_delay_60 time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = stepwise (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*lasso model with all variables - only delays 40, 55 and 60 are sig */
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow avg_delay_35 avg_delay_40 avg_delay_45 avg_delay_50 avg_delay_55 avg_delay_60 time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = lasso (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*removing the ind delay variables*/
+/*fwd model wo ind delays - 8 parameters adjr2 = .38 */
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = forward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*bwd model wo ind delays - only intercept??? adjr2 = .4 */
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = backward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*stepwise model wo ind delays - 7 parameters, adjr2 = .38*/
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = stepwise (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*lasso model wo ind delays - adjr2 = .27*/
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = lasso (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*which variables to log?*/
+proc sgscatter data =work.import;
+matrix total_flow avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period/ ellipse= (alpha = .5);
+run;
+/*log total flow*/
+data work.import;
+set work.import;
+log_total_flow = log(total_flow);
+run;
+/*bwd model with log total flow - no parameters, only intercept */
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = backward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*fwd model with log total flow - a few parameters, adjr2 = .27 */
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = forward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*lasso model with log total flow - a few parameters, adjr2 = .21 */
+proc glmselect data=work.import;
+class county annual_vmt;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = lasso (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*model with determined variables - all values sig r2 = .39*/
+proc glm data = work.import;
+class county;
+model avg_delay = total_flow total_sample county avg_back_peak_month avg_back_peak_hour avg_percent_observed time_period;
+run;
+/*trying model with determined variables and log flow- that kicked out total_sample with type 1 error pvalue, 21.9 RMSE*/
+proc glm data = work.import;
+class county;
+model avg_delay = log_total_flow total_sample county avg_back_peak_month avg_back_peak_hour avg_percent_observed time_period;
+run;
+/*trying model with determined variables and log flow- wo total sample - almost same rmse and r2 as w total sample*/
+proc glm data = work.import;
+class county;
+model avg_delay = log_total_flow county avg_back_peak_month avg_back_peak_hour avg_percent_observed time_period;
+run;
+/*trying with interaction terms - r2 = .4, rmse = 21.4*/
+proc glm data = work.import;
+class county;
+model avg_delay = total_flow | county avg_back_peak_month avg_back_peak_hour avg_percent_observed time_period;
+run;
+/*trying with interaction terms but log total flow, removing total sample - r2 =, rmse = */
+proc glm data = work.import;
+class county;
+model avg_delay = log_total_flow | county avg_back_peak_month avg_back_peak_hour avg_percent_observed time_period;
+run;
+/*trying with avg_back_aadt but lowers r2 and increase rmse*/
+proc glm data = work.import;
+class county;
+model avg_delay = log_total_flow avg_back_aadt county avg_back_peak_month avg_back_peak_hour avg_percent_observed time_period;
+run;
+/*trying with parameters suggested by paul, but r2 went down to .17*/
+proc glm data = work.import;
+class county;
+model avg_delay = log_total_flow|avg_back_aadt ;
+run;
+/*trying new interaction terms with selected model, r2 went down to .32*/
+proc glm data = work.import;
+class county;
+model avg_delay = log_total_flow | avg_back_peak_hour county avg_back_peak_month avg_percent_observed time_period;
+run;
+/*only model 101 data*/
+data oneoone;
+set work.import;
+if route ^= 101 then delete;
+run;
+proc print data = oneoone;
+run;
+/*fwd model wo ind delays only 101 data - adjr2 = .74, rmse = 3.6*/
+proc glmselect data=oneoone;
+class county annual_vmt;
+model avg_delay = total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = forward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*bwd model wo ind delays only 101 data - adjr2 = .87, rmse = 2.9*/
+proc glmselect data=oneoone;
+class county annual_vmt;
+model avg_delay = total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = backward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*stepwise model wo ind delays only 101 data - adjr2 = .46*/
+proc glmselect data=oneoone;
+class county annual_vmt;
+model avg_delay = total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = stepwise (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*lasso model wo ind delays only 101 data - not this one*/
+proc glmselect data=oneoone;
+class county annual_vmt;
+model avg_delay = total_sample avg_percent_observed total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = lasso (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*testing bwd model oneoone just to see pvalues*/
+/*r2=.76 rmse=3.6*/
+proc glm data=oneoone;
+model avg_delay = total_sample avg_percent_observed total_flow time_period;
+run;
+/*r2 = .78, rmse = 3.47*/
+proc glm data=oneoone;
+model avg_delay = total_sample avg_percent_observed log_total_flow time_period;
+run;
+/*removing avg_percent_obs lowers r2 and raises rmse for both log and non-log total flow */
+proc glm data=oneoone;
+model avg_delay = total_sample total_flow time_period;
+run;
+/*trying interaction terms w selected model r2 = .85 and rmse = 2.8*/
+proc glm data=oneoone;
+model avg_delay = total_sample avg_percent_observed|log_total_flow time_period;
+run;
+/*!!!trying interaction terms w selected model r2 = .88 and rmse = 2.5 but observed p-value went to .8*/
+proc glm data=oneoone;
+model avg_delay = total_sample|log_total_flow avg_percent_observed log_total_flow time_period;
+run;
+/*tried removing observed, but r2 went down to .5*/
+proc glm data=oneoone;
+model avg_delay = total_sample|log_total_flow log_total_flow time_period;
+run;
+/*trying interaction terms w selected model r2 = .78*/
+proc glm data=oneoone;
+model avg_delay = total_sample|time_period log_total_flow avg_percent_observed;
+run;
+/*trying interaction terms w selected model r2 = .78*/
+proc glm data=oneoone;
+model avg_delay = log_total_flow|time_period avg_percent_observed total_sample;
+run;
+/*!!!!!final model*/
+proc glm data=oneoone;
+model avg_delay = total_sample|log_total_flow avg_percent_observed log_total_flow time_period;
+run;

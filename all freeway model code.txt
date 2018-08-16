@@ -1,0 +1,75 @@
+/* Generated Code (IMPORT) */
+/* Source File: consolidateddata_train.xlsx */
+/* Source Path: /folders/myfolders */
+/* Code generated on: 8/12/18, 8:29 AM */
+
+%web_drop_table(WORK.IMPORT);
+
+
+FILENAME REFFILE '/folders/myfolders/dds/consolidateddata_train.xlsx';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=XLSX
+	OUT=WORK.IMPORT;
+	GETNAMES=YES;
+RUN;
+
+PROC CONTENTS DATA=WORK.IMPORT; RUN;
+
+
+%web_open_table(WORK.IMPORT);
+
+/*log total flow*/
+data work.import;
+set work.import;
+log_total_flow = log(total_flow);
+run;
+/*bwd model with log total flow - 6 parameters adjr2 = .87, aic = 1730 */
+proc glmselect data=work.import;
+class county annual_vmt route;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = backward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*fwd model with log total flow - 6 parameters, adjr2 = .87, aic = 1728  */
+proc glmselect data=work.import;
+class county annual_vmt route;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = forward (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*stepwise model with log total flow -  parameters, adjr2 = .865  */
+proc glmselect data=work.import;
+class county annual_vmt route;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = stepwise (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*lasso model with log total flow -2 few parameters, adjr2 = .52  */
+proc glmselect data=work.import;
+class county annual_vmt route;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period county avg_back_peak_hour avg_back_peak_month avg_back_aadt avg_ahead_peak_hour avg_ahead_peak_month avg_ahead_aadt time_period annual_vmt/
+selection = lasso (stop=CV) stats=adjrsq CVdetails=cvpress cvmethod=random(5);
+run;
+/*model with determined variables - all values sig r2 = .87, rmse = 10.27 */
+proc glm data = work.import;
+class route;
+model avg_delay = route total_sample avg_percent_observed log_total_flow time_period;
+run;
+/*!!!!final model selected with all freeways trying with interaction terms - r2 = .93, rmse = 7.88*/
+proc glm data = work.import;
+class route;
+model avg_delay = route|total_sample avg_percent_observed log_total_flow time_period;
+run;
+/*trying with interaction terms log total flow, r2 = .91, rmse = 8.93 */
+proc glm data = work.import;
+class route;
+model avg_delay = route|log_total_flow total_sample avg_percent_observed time_period;
+run;
+/*trying new interaction terms with selected model, r2=.92, rmse = 8. */
+proc glm data = work.import;
+class route;
+model avg_delay = route|time_period log_total_flow total_sample avg_percent_observed; 
+run;
+/*trying new interaction terms wo log total flow, r2=.92, rmse = 8.3 */
+proc glm data = work.import;
+class route;
+model avg_delay = route|total_sample avg_percent_observed time_period;
+run;
