@@ -1,15 +1,17 @@
 # References: https://www.transportation.gov/sites/dot.dev/files/docs/Costs%20of%20Surface%20Transportation%20Congestion.pdf
-
+install.packages("broom")
 library(broom)
 library(dplyr)
+install.packages("kableExtra")
 library(kableExtra)
+install.packages("varhandle")
 library(varhandle)
 getwd()
-setwd("D:\\Documents\\SMU\\DoingDataScience\\Homework\\CaseStudy2\\MSDS6306_CaseStudy2-master\\")
+#setwd("D:\\Documents\\SMU\\DoingDataScience\\Homework\\CaseStudy2\\MSDS6306_CaseStudy2-master\\")
 list.files()
 
 # Read income data from CSV
-income <- read.csv("Median Adjusted Gross Income by County - All Tax Filers.csv")
+income <- read.csv("https://raw.githubusercontent.com/ubergeekin/MSDS6306_CaseStudy2/master/Median%20Adjusted%20Gross%20Income%20by%20County%20-%20All%20Tax%20Filers.csv")
 
 # find LA and Ventura counties that make up district 7
 la <- grep("Los Angeles", income$County)
@@ -34,7 +36,7 @@ dis7.income <- as.numeric(dis7.income)
 dis7.income <- mean(dis7.income)
 
 # Read gasoline prices CSV into the gas variable
-gas <- read.csv("Weekly_California_All_Grades_All_Formulations_Retail_Gasoline_Prices.csv")
+gas <- read.csv("https://raw.githubusercontent.com/ubergeekin/MSDS6306_CaseStudy2/master/Weekly_California_All_Grades_All_Formulations_Retail_Gasoline_Prices.csv")
 names(gas) <- c('Week of','Price')
 gas$Price <- as.numeric(paste(gas$Price))
 gascost <- mean(gas$Price, na.rm = TRUE)
@@ -43,7 +45,7 @@ gascost <- mean(gas$Price, na.rm = TRUE)
 # Equation Conversions with Consolidated_traffic_data.csv #
 
 # Read in the consolidated traffic data file
-consolidated <- read.csv("consolidated_traffic_data.csv")
+consolidated <- read.csv("https://raw.githubusercontent.com/ubergeekin/MSDS6306_CaseStudy2/master/consolidated_traffic_data.csv")
 
 # Calculate the mean of delays
 delays <- as.numeric(consolidated$avg_delay_35, consolidated$avg_delay_40, consolidated$avg_delay_45, consolidated$avg_delay_50, consolidated$avg_delay_55, consolidated$avg_delay_60)
@@ -97,7 +99,7 @@ ttpc <- format(ttpc, scientific = FALSE)
 print(paste("Travel Time in Peak Congestion Period:", ttpc))
 
 # Calculate Unreliability Var = S0 + S1 - S0 / 1 + exp(b(v/c -a))
-varco <- read.csv("variability_coefficient.csv")
+varco <- read.csv("https://raw.githubusercontent.com/ubergeekin/MSDS6306_CaseStudy2/master/variability_coefficient.csv")
 s0 <- mean(varco$S0_Freeway, varco$S0_Arterial)
 s1 <- mean(varco$S1_Freeway, varco$S1_Aterial)
 b <- mean(varco$B_Freeway, varco$B_Arterial)
@@ -107,7 +109,7 @@ v <- mean(consolidated$total_flow)
 var <- (s0+s1)/(1+(exp(b*(v/c-a))))
 
 # Calculate Reduced Mobility: C = Time Cost + Vehicle Operating Cost + Reliability Cost
-mobility <= tc + voc + rc
+mobility <- tc + voc + rc
 
 # Calculate average cost of driving (AC)
 ac <- gascost+delays+var
