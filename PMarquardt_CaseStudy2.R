@@ -1,10 +1,10 @@
 # References: https://www.transportation.gov/sites/dot.dev/files/docs/Costs%20of%20Surface%20Transportation%20Congestion.pdf
-install.packages("broom")
+#install.packages("broom")
 library(broom)
 library(dplyr)
-install.packages("kableExtra")
+#install.packages("kableExtra")
 library(kableExtra)
-install.packages("varhandle")
+#install.packages("varhandle")
 library(varhandle)
 getwd()
 #setwd("D:\\Documents\\SMU\\DoingDataScience\\Homework\\CaseStudy2\\MSDS6306_CaseStudy2-master\\")
@@ -47,10 +47,18 @@ gascost <- mean(gas$Price, na.rm = TRUE)
 # Read in the consolidated traffic data file
 consolidated <- read.csv("https://raw.githubusercontent.com/ubergeekin/MSDS6306_CaseStudy2/master/consolidated_traffic_data.csv")
 
+consolidated_101 <- consolidated[ which(consolidated$route==101 ),]
+
 # Calculate the mean of delays
 delays <- as.numeric(consolidated$avg_delay_35, consolidated$avg_delay_40, consolidated$avg_delay_45, consolidated$avg_delay_50, consolidated$avg_delay_55, consolidated$avg_delay_60)
 delays <- mean(delays)
 delays
+
+# mean delay isolated to the 101
+delays_101 <- as.numeric(consolidated_101$avg_delay_35, consolidated_101$avg_delay_40, consolidated_101$avg_delay_45, consolidated_101$avg_delay_50, consolidated_101$avg_delay_55, consolidated_101$avg_delay_60)
+delays_101 <- mean(delays_101)
+delays_101
+
 
 # Average speed vector defined by delay data
 avgspd <- c(35,40,45,50,55,60)
@@ -82,10 +90,22 @@ vmt <- na.omit(as.numeric(paste(consolidated$annual_vmt)))
 vmt <- mean(vmt)
 vmt
 
+# mobility cost isolated to the 101
+
+vmt_101 <- na.omit(as.numeric(paste(consolidated_101$annual_vmt)))
+vmt_101 <- mean(vmt_101)
+vmt_101
+
 # Define Vehicle Hours Traveld (VHT)
 vht.raw <- na.omit(consolidated$avg_back_peak_hour, + consolidated$avg_back_peak_hour, + consolidated$avg_back_peak_month, + consolidated$avg_back_peak_hour)
 vht <- mean(vht.raw)
 vht
+
+# VMT isolated to the 101
+
+vht_101.raw <- na.omit(consolidated_101$avg_back_peak_hour, + consolidated_101$avg_back_peak_hour, + consolidated_101$avg_back_peak_month, + consolidated_101$avg_back_peak_hour)
+vht_101 <- mean(vht_101.raw)
+vht_101
 
 # Calculate Value of Travel (VOT) for personal, business, truck
 iwage <- (dis7.income/1980)/2
@@ -97,6 +117,12 @@ vot <- mean(iwage, bwage, twage)
 ttpc <- vht / vmt
 ttpc <- format(ttpc, scientific = FALSE)
 print(paste("Travel Time in Peak Congestion Period:", ttpc))
+
+# TTPC isolated to the 101
+
+ttpc_101 <- vht_101 / vmt_101
+ttpc_101 <- format(ttpc_101, scientific = FALSE)
+print(paste("Travel Time in Peak Congestion Period:", ttpc_101))
 
 # Calculate Unreliability Var = S0 + S1 - S0 / 1 + exp(b(v/c -a))
 varco <- read.csv("https://raw.githubusercontent.com/ubergeekin/MSDS6306_CaseStudy2/master/variability_coefficient.csv")
@@ -112,7 +138,17 @@ var <- (s0+s1)/(1+(exp(b*(v/c-a))))
 ac <- gascost+delays+var
 ac
 
+# AC isolated to the 101
+
+ac_101 <- gascost+delays_101+var
+ac_101
+
 # Calculate total cost of driving (TC)
 tc <- ac*vmt
 tc
+
+# TC isolated to the 101
+
+tc_101 <- ac_101*vmt_101
+tc_101
 # ************************** END EQUATIONS  **************************#      
